@@ -25,6 +25,10 @@ export const updateUser =async (req:express.Request,res:express.Response)=>{
             return;
         }
         const user=await getUserById(id);
+        if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+}
         user.username=username;
         await user.save();
         res.sendStatus(200).json(user).end();

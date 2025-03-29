@@ -1,70 +1,91 @@
-import express from 'express';
-import { createUser,getUserByEmail } from '../db/users';
-import { random,authentication } from '../helpers';
+import express, { Request, Response } from 'express';
+import { createUser, getUserByEmail } from '../db/users';
+import { random, authentication } from '../helpers';
 
-export const register: express.RequestHandler = async(req:express.Request,res:express.Response)=>{
-    try{
-        const {email,password,username}=req.body;
+export const register: express.RequestHandler = async (req, res): Promise<void> => {
+    try {
+        const { email, password, username } = req.body;
 
-        if(!email||!password||!username){
-            res.status(400).json({ error: 'Missing required fields' });
-            return; // Ensure no further execution
-        }
-        const existingUser=await getUserByEmail(email);
-
-        if(existingUser){
-            res.status(400).json({ error: 'User already exists' });
+        if (!email || !password || !username) {
+            res.status(400).json({ message: 'Missing required fields' });
             return;
         }
 
-        const salt=random();
-        const user= await createUser({
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+            res.status(400).json({ message: 'User already exists' });
+            return;
+        }
+
+        const salt = random();
+        const newUser = await createUser({
             email,
             username,
-            authentication:{
+            authentication: {
                 salt,
-                password:authentication(salt,password),
+                password: authentication(salt, password),
             }
         });
-        res.status(201).json(user); // Send the response
-        return;
 
-    }catch(error){
-        console.log(error);
+        res.status(201).json(newUser);  // No return here, just response handling
+    } catch (error: unknown) {
         console.error('Registration Error:', error);
-        res.status(500).json({ error: 'Internal Server Error' }); // Handle errors
-        return;
+        if (error instanceof Error) {
+            res.status(500).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
     }
-}
-export const login=async (req:express.Request,res:express.Response)=>{
-    try{
-        const {email,password}=req.body;
-        if(!email || !password){
-            res.status(400).json({ error: "Email and password are required." });;
-            return;
-        }
-        const user=await getUserByEmail(email).select('+authentication.salt +authentication.password');
-        if(!user){
-            res.status(400).json({ error: "User not found." });;
-            return;
-        }
-        const expectedHash=authentication(user.authentication.salt,password);
-        if(expectedHash!=user.authentication.password){
-            res.status(403).json({ error: "Invalid credentials." });;
+};
+
+export const login: express.RequestHandler = async (req, res): Promise<void> => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            res.status(400).json({ message: 'Email and password are required.' });
             return;
         }
 
-        const salt=random();
-        user.authentication.sessionToken=authentication(salt,user._id.toString());
-        console.log(user.authentication.sessionToken);
+        const user = await getUserByEmail(email).select('+authentication.salt +authentication.password');
+
+        if (!user || !user.authentication) {
+            res.status(400).json({ message: 'User not found or authentication details missing.' });
+            return;
+        }
+
+        const { salt, password: hashedPassword } = user.authentication;
+
+        if (!salt || !hashedPassword) {
+            res.status(400).json({ message: 'Authentication details are incomplete.' });
+            return;
+        }
+
+        const expectedHash = authentication(salt, password);
+        if (expectedHash !== hashedPassword) {
+            res.status(403).json({ message: 'Invalid credentials.' });
+            return;
+        }
+
+        const sessionSalt = random();
+        user.authentication.sessionToken = authentication(sessionSalt, user._id.toString());
         await user.save();
 
-        res.cookie('TEMPO-AUTH',user.authentication.sessionToken,{domain:'localhost',path:'/'});
+        res.cookie('TEMPO-AUTH', user.authentication.sessionToken, {
+            domain: 'localhost',
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        });
+
         res.status(200).json(user);
-        return;
-    }catch(error){
+    } catch (error: unknown) {
         console.error('Login Error:', error);
-        res.status(400);
-        return;
+        if (error instanceof Error) {
+            res.status(500).json({ message: error.message });
+        } else {
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
     }
-}
+};

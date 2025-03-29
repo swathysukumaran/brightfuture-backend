@@ -27,10 +27,23 @@ server.listen(8081,()=>{
 });
 dotenv.config();
 const MONGO_URL=process.env.MONGO_URL;
-console.log('Mongo URL:',MONGO_URL);
+if (!MONGO_URL) {
+    console.error('MongoDB URL is not defined in environment variables.');
+    process.exit(1);  // Exit the process if MONGO_URL is not set
+} else {
+    console.log('Mongo URL:', MONGO_URL);
+    mongoose.Promise = Promise;
+    mongoose.connect(MONGO_URL)
+        .then(() => {
+            console.log('Successfully connected to MongoDB');
+        })
+        .catch((error: Error) => {
+            console.error('Error connecting to MongoDB:', error.message);
+            process.exit(1);  // Exit the process on connection failure
+        });
+}
 
-mongoose.Promise=Promise;
-mongoose.connect(process.env.MONGO_URL);
+
 mongoose.connection.on('error',(error:Error)=>{console.log(error);});
 
 app.use(bodyparser.json({ limit: '50mb' }));
