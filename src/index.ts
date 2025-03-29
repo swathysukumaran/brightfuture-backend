@@ -22,8 +22,9 @@ app.use(cookieParser());
 const client = new SpeechClient();
 const server=http.createServer(app);
 
-server.listen(8081,()=>{
-    console.log('Server is running on http://localhost:8081/');
+const PORT = process.env.PORT || 8081;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
 dotenv.config();
 const MONGO_URL=process.env.MONGO_URL;
