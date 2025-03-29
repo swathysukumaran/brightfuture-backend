@@ -1,0 +1,1 @@
+{"version":3,"file":"appointmentRoutes.js","sourceRoot":"","sources":["../../src/router/appointmentRoutes.ts"],"names":[],"mappings":";;AACA,gFAAkG;AAClG,gDAAiD;AAEjD,kBAAe,CAAC,MAAqB,EAAC,EAAE;IACpC,MAAM,CAAC,GAAG,CAAC,mBAAmB,EAAC,6BAAe,EAAC,gDAAwB,CAAC,CAAC;IACzE,MAAM,CAAC,IAAI,CAAC,mBAAmB,EAAC,6BAAe,EAAC,yCAAiB,CAAC,CAAC;AAEvE,CAAC,CAAC"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"tripDetails.js","sourceRoot":"","sources":["../../src/router/tripDetails.ts"],"names":[],"mappings":";;AAEA,gDAAiD;AACjD,8CAAkE;AAElE,kBAAe,CAAC,MAAqB,EAAC,EAAE;IACpC,MAAM,CAAC,GAAG,CAAC,uBAAuB,EAAC,6BAAe,EAAC,qBAAc,CAAC,CAAC;IACnE,MAAM,CAAC,GAAG,CAAC,QAAQ,EAAC,6BAAe,EAAC,kBAAW,CAAC,CAAC;AAErD,CAAC,CAAC"}
