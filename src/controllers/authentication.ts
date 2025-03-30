@@ -72,11 +72,11 @@ export const login: express.RequestHandler = async (req, res): Promise<void> => 
         await user.save();
 
         res.cookie('TEMPO-AUTH', user.authentication.sessionToken, {
-            domain: 'localhost',
+           
             path: '/',
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         });
 
         res.status(200).json(user);
